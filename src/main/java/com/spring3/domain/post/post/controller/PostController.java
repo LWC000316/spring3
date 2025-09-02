@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.stream.Collectors;
+
 @Controller
 public class PostController {
 
@@ -50,12 +52,12 @@ public class PostController {
     @AllArgsConstructor
     @Getter
     public static class PostWriteForm {
-        @NotBlank
-        @Size(min = 2, max = 10)
+        @NotBlank(message = "1-제목을 입력해주세요.")
+        @Size(min = 2, max = 10, message = "2-제목은 2글자 이상 10글자 이하로 입력해주세요.")
         private String title;
 
-        @NotBlank
-        @Size(min = 2, max = 100)
+        @NotBlank(message = "3-내용을 입력해주세요.")
+        @Size(min = 2, max = 100, message = "4-내용은 2글자 이상 100글자 이하로 입력해주세요.")
         private String content;
     }
 
@@ -72,14 +74,16 @@ public class PostController {
             @Valid PostWriteForm form, BindingResult bindingResult
     ) {
         if(bindingResult.hasErrors()) {
-            FieldError fieldError = bindingResult.getFieldError();
-            String fieldName = fieldError.getField();
-            String errorMessage = fieldError.getDefaultMessage();
+            String fieldName = "title";
 
-            System.out.println("fieldName = " + fieldName);
-            System.out.println("errorMessage = " + errorMessage);
 
-            return getWriteFormHtml(errorMessage, form.title, form.content, fieldName);
+            String errorMessages = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(FieldError::getDefaultMessage)
+                    .sorted()
+                    .collect(Collectors.joining("<br>"));
+
+            return getWriteFormHtml(errorMessages, form.title, form.content, fieldName);
         }
 
 
